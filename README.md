@@ -100,6 +100,23 @@ pool:0.08929324 sec
 
 We saw a performance improvement of about 10 times.  
 
+## How to install
+### Installing Unsafe
+1. download the [Unsafe](https://www.nuget.org/packages/System.Runtime.CompilerServices.Unsafe/) package using [NuGet Package Explurer](https://apps.microsoft.com/store/detail/nuget-package-explorer/9WZDNCRDMDM3?hl=ja-jp&gl=jp) or similar.
+2. install `System.Runtime.CompilerServices.Unsafe.dll` under Plugins.
+
+### Installing BoxingPool
+1. Open [Window > Package Manager].
+2. click [+ > Add package from git url...].
+3. Type `https://github.com/Katsuya100/BoxingPool.git?path=packages` and click [Add].
+
+#### If it doesn't work
+The above method may not work well in environments where git is not installed.  
+Download the appropriate version of `com.katuusagi.boxingpool.tgz` from [Releases](https://github.com/Katsuya100/BoxingPool/releases), and then [Package Manager > + > Add package from tarball...] Use [Package Manager > + > Add package from tarball...] to install the package.
+
+#### If it still doesn't work
+Download the appropriate version of `Katuusagi.BoxingPool.unitypackage` from [Releases](https://github.com/Katsuya100/BoxingPool/releases) and Import it into your project from [Assets > Import Package > Custom Package].
+
 ## How to Use
 ### Normal usage
 BoxingPool usage with the following notation.  
