@@ -1,11 +1,11 @@
 # BoxingPool
-## �T�v
-�{���C�u������BoxingPool�͋ɂ߂Čy�ʂ�Box����񋟂��܂��B  
-Box���I�u�W�F�N�g�����O��Pool���Ă����A�K�v�ȂƂ��ɍė��p���邱�Ƃ�  
-�[���A���P�[�V������Box�����������܂��B  
+## 概要
+本ライブラリはBoxingPoolは極めて軽量なBox化を提供します。  
+Box化オブジェクトを事前にPoolしておき、必要なときに再利用することで  
+ゼロアロケーションなBox化を実現します。  
 
-## ���\
-### �G�f�B�^��̌v���R�[�h
+## 性能
+### エディタ上の計測コード
 ```.cs
 private static void Run()
 {
@@ -51,12 +51,12 @@ private struct Big
     public int value;
 }
 ```
-#### ����
+#### 結果
 ![image](https://github.com/Katsuya100/BoxingPool/assets/33303650/b00c15fd-7b9e-4e27-88d2-09cf91f929ec)  
-BoxingPool���g�����Ƃ�2�{���x�̃p�t�H�[�}���X���P�������܂��B  
-�܂��A���P�[�V�������[���ɂȂ�A�������p�t�H�[�}���X�����サ�Ă��܂��B  
+BoxingPoolを使うことで2倍程度のパフォーマンス改善が見られます。  
+またアロケーションもゼロになり、メモリパフォーマンスも向上しています。  
 
-### �r���h��̌v���R�[�h
+### ビルド後の計測コード
 ```.cs
 Big big = default(Big);
 var start = Time.realtimeSinceStartup;
@@ -86,7 +86,7 @@ for (int i = 0; i < 100000; ++i)
 }
 var s2 = Time.realtimeSinceStartup - start;
 ```
-#### ����
+#### 結果
 - Mono  
 ```
 legacy:1.092957 sec
@@ -99,20 +99,39 @@ legacy:0.8230033 sec
 pool:0.08929324 sec
 ```
 
-10�{���x�̃p�t�H�[�}���X���P�������܂����B  
+10倍程度のパフォーマンス改善が見られました。  
 
-## �g����
-### �ʏ�̎g�p�@
-�ȉ��̋L�@��BoxingPool���g�p�ł��܂��B  
-�g���ۂ͂Ȃ�ׂ�object��ԋp���Ă��������B  
-�ԋp����Ȃ��ꍇ��Pool���̃L���b�V��������A�p�t�H�[�}���X�ቺ�Ɍq����\��������܂��B  
+## インストール方法
+### Unsafeのインストール
+1. [NuGet Package Explurer](https://apps.microsoft.com/store/detail/nuget-package-explorer/9WZDNCRDMDM3?hl=ja-jp&gl=jp)などを使い[Unsafe](https://www.nuget.org/packages/System.Runtime.CompilerServices.Unsafe/)のパッケージをダウンロードする。
+2. `System.Runtime.CompilerServices.Unsafe.dll`をPlugins以下に設置する。
+
+### BoxingPoolのインストール
+1. [Window > Package Manager]を開く。
+2. [+ > Add package from git url...]をクリックする。
+3. `https://github.com/Katsuya100/BoxingPool.git?path=packages`と入力し[Add]をクリックする。
+
+#### うまくいかない場合
+上記方法は、gitがインストールされていない環境ではうまく動作しない場合があります。
+[Releases](https://github.com/Katsuya100/BoxingPool/releases)から該当のバージョンの`com.katuusagi.boxingpool.tgz`をダウンロードし
+[Package Manager > + > Add package from tarball...]を使ってインストールしてください。
+
+#### それでもうまくいかない場合
+[Releases](https://github.com/Katsuya100/BoxingPool/releases)から該当のバージョンの`Katuusagi.BoxingPool.unitypackage`をダウンロードし
+[Assets > Import Package > Custom Package]からプロジェクトにインポートしてください。
+
+## 使い方
+### 通常の使用法
+以下の記法でBoxingPoolを使用できます。  
+使う際はなるべくobjectを返却してください。  
+返却されない場合はPool内のキャッシュが減り、パフォーマンス低下に繋がる可能性があります。  
 ```.cs
 object o = BoxingPool<int>.Get(100);
 Debug.Log(o);
 BoxingPool<int>.Return(o);
 ```
 
-�����A�ԋp���ʓ|�ȏꍇ�͉��L�̋L�@���L���ł��B  
+もし、返却が面倒な場合は下記の記法も有効です。  
 ```.cs
 using(BoxingPool<int>.Get(100, out object o))
 {
@@ -120,52 +139,52 @@ using(BoxingPool<int>.Get(100, out object o))
 }
 ```
 
-�ȉ��̂悤��Class�^��Pool���s����ꍇ�A�L���b�V�����\�z���ꂸ�ʏ�̃L���X�g�����s����܂��B  
+以下のようにClass型のPoolが行われる場合、キャッシュが構築されず通常のキャストが実行されます。  
 ```.cs
 var o = BoxingPool<GameObject>.Get(gameObject);
 ```
-���̂��߁AGeneric������n���Ă�����ɓ��삵�܂��B  
+そのため、Generic引数を渡しても正常に動作します。  
 
-### struct���g�����Ƃ����m�ȏꍇ
-�^���m����struct�̏ꍇ��`StructOnlyBoxingPool`��p����Ɨ��_��̃p�t�H�[�}���X�����サ�܂��B  
+### structを使うことが明確な場合
+型が確実にstructの場合は`StructOnlyBoxingPool`を用いると理論上のパフォーマンスが向上します。  
 ```.cs
 object o = StructOnlyBoxingPool<int>.Get(100);
 Debug.Log(o);
 StructBoxingPool<int>.Return(o);
 ```
 
-### object�ȊO�̊��N���X�ւ�Box��
-�ȉ��̋L�@��object�ȊO�̊��N���X�ւ�Boxing�������ł��܂��B  
+### object以外の基底クラスへのBox化
+以下の記法でobject以外の基底クラスへのBoxingを実現できます。  
 ```.cs
 object o = BoxingPool<int, IComparable>.Get(100);
 ```
 
-### �}���`�X���b�h�ɑΉ��������ꍇ
-�}���`�X���b�h���Ŏg�p�������ꍇ��  
-`ConcurrentBoxingPool`��`CuncurrentStructOnlyBoxingPool`���g�p���Ă��������B  
+### マルチスレッドに対応したい場合
+マルチスレッド環境で使用したい場合は  
+`ConcurrentBoxingPool`や`CuncurrentStructOnlyBoxingPool`を使用してください。  
 ```.cs
 var o = ConcurrentBoxingPool<GameObject>.Get(gameObject);
 ```
-Concurrent�V���[�Y�͑���BoxingPool�ƈقȂ�A�ŗL��Pool�������Ă��܂��B  
-����ɂ��A�}���`�X���b�h���ł��g�p���邱�Ƃ��\�ł��B  
-�������ABoxingPool�ɔ�ׂĐ��\�ʂł̉ۑ肪����܂��B  
-��̃A�b�v�f�[�g�ŉ��P���Ă����\��ł��B  
+Concurrentシリーズは他のBoxingPoolと異なり、固有のPoolを持っています。  
+これにより、マルチスレッド環境でも使用することが可能です。  
+しかし、BoxingPoolに比べて性能面での課題があります。  
+後のアップデートで改善していく予定です。  
 
-### �L���b�V���̍쐬
-`MakeCache`�֐����Ăяo�����ƂŎ��O�ɃL���b�V�����쐬���邱�Ƃ��ł��܂��B  
-���O�ɃL���b�V�����쐬���Ă����΃L���b�V���T�C�Y�����߂��鑼�A������s���̃A���P�[�V������}�����邱�Ƃ��ł��܂��B  
+### キャッシュの作成
+`MakeCache`関数を呼び出すことで事前にキャッシュを作成することができます。  
+事前にキャッシュを作成しておけばキャッシュサイズを決められる他、初回実行時のアロケーションを抑制することができます。  
 ```.cs
 BoxingPool<int>.MakeCache(32);
 ```
 
-## �����ȗ��R
-�{��Box���I�u�W�F�N�g��ۊǂ��Ă����ɂ���\���̃C���X�^���X�����������邱�Ƃ͂ł��܂���B  
-���ʂɏ��������悤�Ƃ���΍�Box�����s���邽�߁A�ʂ̃C���X�^���X�ɕς���Ă��܂��܂��B  
-�������A�{���C�u�����ł�`Unsafe`��p��object�^�Ń��b�v���ꂽ�\���̂��������ォ�珑�������邱�Ƃōė��p���������Ă��܂��B  
+## 高速な理由
+本来Box化オブジェクトを保管しても中にある構造体インスタンスを書き換えることはできません。  
+普通に書き換えようとすれば再Box化が行われるため、別のインスタンスに変わってしまいます。  
+しかし、本ライブラリでは`Unsafe`を用いobject型でラップされた構造体をメモリ上から書き換えることで再利用を実現しています。  
 
-�܂��APool��`Static Type Caching`��p���č����Ɏ擾�ł��܂��B  
-����A�N�Z�X���ɃL���b�V���\�z�̃A���P�[�V����������܂����A���O�ɃL���b�V��������Ă����΂��̃A���P�[�V�������[���ɂȂ�܂��B  
+また、Poolは`Static Type Caching`を用いて高速に取得できます。  
+初回アクセス時にキャッシュ構築のアロケーションが走りますが、事前にキャッシュを作っておけばこのアロケーションもゼロになります。  
 
-`MethodImpl`������`AggressiveInline`��ݒ肵�Ă��邽�߁A�r���h���̃C�����C���W�J�ɂ��œK�������҂ł��܂��B
+`MethodImpl`属性で`AggressiveInline`を設定しているため、ビルド時のインライン展開による最適化も期待できます。
 
-�ȏ�̃e�N�j�b�N�ɂ��]����Box���ɔ�׈��|�I�ȃp�t�H�[�}���X���������Ă��܂��B  
+以上のテクニックにより従来のBox化に比べ圧倒的なパフォーマンスを実現しています。  
