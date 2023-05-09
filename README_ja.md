@@ -103,7 +103,7 @@ pool:0.08929324 sec
 
 ## インストール方法
 ### Unsafeのインストール
-1. [NuGet Package Explurer](https://apps.microsoft.com/store/detail/nuget-package-explorer/9WZDNCRDMDM3?hl=ja-jp&gl=jp)などを使い[Unsafe](https://www.nuget.org/packages/System.Runtime.CompilerServices.Unsafe/)のパッケージをダウンロードする。
+1. [NuGet Package Explorer](https://apps.microsoft.com/store/detail/nuget-package-explorer/9WZDNCRDMDM3?hl=ja-jp&gl=jp)などを使い[Unsafe](https://www.nuget.org/packages/System.Runtime.CompilerServices.Unsafe/)のパッケージをダウンロードする。
 2. `System.Runtime.CompilerServices.Unsafe.dll`をPlugins以下に設置する。
 
 ### BoxingPoolのインストール
