@@ -1,4 +1,6 @@
 # BoxingPool
+[日本語](README_ja.md)
+
 ## Summary
 This library, BoxingPool, provides extremely lightweight Boxing.  
 Zero-allocation Boxing is achieved by pooling Boxing objects in advance and reusing them when needed.  
