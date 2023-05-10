@@ -1,6 +1,6 @@
 # BoxingPool
 ## 概要
-本ライブラリはBoxingPoolは極めて軽量なBox化を提供します。  
+本ライブラリ「BoxingPool」は極めて軽量なBox化を提供します。  
 Box化オブジェクトを事前にPoolしておき、必要なときに再利用することで  
 ゼロアロケーションなBox化を実現します。  
 
@@ -143,7 +143,16 @@ using(BoxingPool<int>.Get(100, out object o))
 ```.cs
 var o = BoxingPool<GameObject>.Get(gameObject);
 ```
-そのため、Generic引数を渡しても正常に動作します。  
+そのため、以下のようにGeneric引数を渡しても正常に動作します。  
+```.cs
+void Method<T>(T v)
+{
+    // T型がstruct型であればBoxingコストが削減される。
+    // T型がclass型であればキャストされる。
+    var o = BoxingPool<T>.Get(v);
+    :
+}
+```
 
 ### structを使うことが明確な場合
 型が確実にstructの場合は`StructOnlyBoxingPool`を用いると理論上のパフォーマンスが向上します。  
@@ -156,7 +165,7 @@ StructBoxingPool<int>.Return(o);
 ### object以外の基底クラスへのBox化
 以下の記法でobject以外の基底クラスへのBoxingを実現できます。  
 ```.cs
-object o = BoxingPool<int, IComparable>.Get(100);
+IComparable o = BoxingPool<int, IComparable>.Get(100);
 ```
 
 ### マルチスレッドに対応したい場合
