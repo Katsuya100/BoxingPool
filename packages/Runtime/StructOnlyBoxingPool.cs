@@ -23,13 +23,17 @@ namespace Katuusagi.Pool
 
         static StructOnlyBoxingPool()
         {
+#if !DISABLE_BOXING_POOL
             object dummy = default(T);
             Unsafe.As<object, Box>(ref dummy);
+#endif
         }
 
         public static void MakeCache(int minCount)
         {
+#if !DISABLE_BOXING_POOL
             StaticTypeStack<T>.MakeCache(minCount);
+#endif
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -42,6 +46,9 @@ namespace Katuusagi.Pool
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static object Get(in T value)
         {
+#if DISABLE_BOXING_POOL
+            return value;
+#else
             if (!StaticTypeStack<T>.TryPop(out var result))
             {
                 return value;
@@ -49,17 +56,20 @@ namespace Katuusagi.Pool
 
             Unsafe.As<object, Box>(ref result).Value = value;
             return result;
+#endif
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Return(object value)
         {
+#if !DISABLE_BOXING_POOL
             if (!(value is T))
             {
                 return;
             }
 
             StaticTypeStack<T>.Push(value);
+#endif
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -71,7 +81,11 @@ namespace Katuusagi.Pool
                 return false;
             }
 
+#if DISABLE_BOXING_POOL
+            result = (T)value;
+#else
             result = Unsafe.As<object, Box>(ref value).Value;
+#endif
             return true;
         }
 

@@ -22,7 +22,7 @@ namespace Katuusagi.Pool.Utils
         {
             if (_stack == null)
             {
-                _stack = new();
+                _stack = new ConcurrentStack<object>();
             }
 
             for (int i = 0; i < minCount - _stack.Count; ++i)

@@ -24,6 +24,7 @@ namespace Katuusagi.Pool
 
         static ConcurrentBoxingPool()
         {
+#if !DISABLE_BOXING_POOL
             var t = typeof(T);
             IsStruct = !t.IsClass && !t.IsInterface;
             if (!IsStruct)
@@ -33,11 +34,19 @@ namespace Katuusagi.Pool
 
             object dummy = default(T);
             Unsafe.As<object, Box>(ref dummy);
+#endif
         }
 
         public static void MakeCache(int minCount)
         {
+#if !DISABLE_BOXING_POOL
+            if (!IsStruct)
+            {
+                return;
+            }
+
             StaticTypeConcurrentStack<T>.MakeCache(minCount);
+#endif
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -50,6 +59,9 @@ namespace Katuusagi.Pool
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static object Get(in T value)
         {
+#if DISABLE_BOXING_POOL
+            return value;
+#else
             if (!IsStruct ||
                 !StaticTypeConcurrentStack<T>.TryPop(out var result))
             {
@@ -58,11 +70,13 @@ namespace Katuusagi.Pool
 
             Unsafe.As<object, Box>(ref result).Value = value;
             return result;
+#endif
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Return(object value)
         {
+#if !DISABLE_BOXING_POOL
             if (!IsStruct ||
                 !(value is T))
             {
@@ -70,6 +84,7 @@ namespace Katuusagi.Pool
             }
 
             StaticTypeConcurrentStack<T>.Push(value);
+#endif
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -81,6 +96,9 @@ namespace Katuusagi.Pool
                 return false;
             }
 
+#if DISABLE_BOXING_POOL
+            result = (T)value;
+#else
             if (!IsStruct)
             {
                 result = (T)value;
@@ -88,6 +106,7 @@ namespace Katuusagi.Pool
             }
 
             result = Unsafe.As<object, Box>(ref value).Value;
+#endif
             return true;
         }
 

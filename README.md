@@ -8,8 +8,8 @@ Zero-allocation Boxing is achieved by pooling Boxing objects in advance and reus
 ## System Requirements
 |  Environment  |  Version  |
 | ---- | ---- |
-| Unity | 2021.3.15f1, 2022.2.0f1 |
-| .Net | Standard 2.1 |
+| Unity | 2020.3.42f1, 2021.3.15f1, 2022.2.0f1 |
+| .Net | 4.x, Standard 2.0, Standard 2.1 |
 
 ## Performance
 ### Measurement code on the editor
@@ -182,6 +182,14 @@ Creating a cache in advance allows you to determine the cache size and suppress 
 ```.cs
 BoxingPool<int>.MakeCache(32);
 ```
+
+### Disable BoxingPool
+BoxingPool can be disabled to isolate the problem in the event of a defect.  
+To disable it, define the following symbols.  
+```
+DISABLE_BOXING_POOL
+```
+After disabling, the API will still be valid, but normal Boxing will occur without the Pool.  
 
 ## Reasons for high performance
 By nature, storing a Boxed object does not allow you to rewrite the structure instance inside.  
