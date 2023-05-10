@@ -2,7 +2,7 @@
 [日本語](README_ja.md)
 
 ## Summary
-This library, BoxingPool, provides extremely lightweight Boxing.  
+This library "BoxingPool" provides extremely lightweight Boxing.
 Zero-allocation Boxing is achieved by pooling Boxing objects in advance and reusing them when needed.  
 
 ## Performance
@@ -142,7 +142,16 @@ If a Pool of type Class is performed as follows, no cache is built and normal ca
 ```.cs
 var o = BoxingPool<GameObject>.Get(gameObject);
 ```
-Therefore, passing Generic arguments works fine.  
+Therefore, passing the Generic argument as follows works fine.
+```.cs
+void Method<T>(T v)
+{
+    // If the T-type is struct type, boxing costs are reduced.
+    // If the T type is a class type, it is cast.
+    var o = BoxingPool<T>.Get(v);
+    :
+}
+```
 
 ### If it is clear that struct is to be used
 If the type is definitely struct, `StructOnlyBoxingPool` can be used for better theoretical performance.  
