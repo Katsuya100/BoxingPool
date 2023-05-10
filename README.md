@@ -5,6 +5,12 @@
 This library "BoxingPool" provides extremely lightweight Boxing.
 Zero-allocation Boxing is achieved by pooling Boxing objects in advance and reusing them when needed.  
 
+## System Requirements
+|  Environment  |  Version  |
+| ---- | ---- |
+| Unity | 2021.3.15f1, 2022.2.0f1 |
+| .Net | Standard 2.1 |
+
 ## Performance
 ### Measurement code on the editor
 ```.cs
@@ -88,17 +94,10 @@ for (int i = 0; i < 100000; ++i)
 var s2 = Time.realtimeSinceStartup - start;
 ```
 #### Result
-- Mono  
-```
-legacy:1.092957 sec
-pool:0.1122379 sec
-```
-
-- IL2CPP  
-```
-legacy:0.8230033 sec
-pool:0.08929324 sec
-```
+|  Environment  |  Legacy  |  BoxingPool  |
+| ---- | ---- | ---- |
+| Mono | 1.092957 sec | 0.1122379 sec |
+| IL2CPP | 0.8230033 sec | 0.08929324 sec |
 
 We saw a performance improvement of about 10 times.  
 
