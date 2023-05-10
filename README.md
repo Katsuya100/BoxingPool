@@ -187,7 +187,7 @@ BoxingPool<int>.MakeCache(32);
 ## Reasons for high performance
 By nature, storing a Boxed object does not allow you to rewrite the structure instance inside.  
 If you try to rewrite it normally, it will be reboxed and changed to another instance.  
-However, this library uses `Unsafe` to rewrite a structure wrapped in an object type from memory to achieve reuse.  
+However, this library uses `Unsafe` to rewrite the structure instance itself, which is wrapped in object type, to achieve reuse.  
 
 Pools can also be retrieved quickly using `Static Type Caching`.  
 Although allocation of cache construction is performed at the first access, this allocation can be eliminated if the cache is created in advance.  
