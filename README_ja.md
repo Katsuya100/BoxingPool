@@ -7,17 +7,53 @@ Box化オブジェクトを事前にPoolしておき、必要なときに再利�
 ## 動作確認環境
 |  環境  |  バージョン  |
 | ---- | ---- |
-| Unity | 2020.3.42f1, 2021.3.15f1, 2022.2.0f1 |
-| .Net | 4.x, Standard 2.0, Standard 2.1 |
+| Unity | 2021.3.15f1, 2022.2.0f1 |
+| .Net | 4.x, Standard 2.1 |
 
 ## 性能
 ### エディタ上の計測コード
+[テストコード](packages/Tests/Runtime/BoxingPoolPerformanceTest.cs) 
+
+#### 結果
+|  実行処理  |  処理時間  |
+| ---- | ---- | ---- |
+| Boxing_Legacy | 34.47214 ms |
+| Boxing_Pool | 17.515775 ms |
+| Boxing_StructOnlyPool | 17.239465 ms |
+| Boxing_ConcurrentPool | 17.70384 ms |
+| Boxing_ConcurrentStructOnlyPool | 15.53006 ms |
+
+BoxingPoolを使うことで2倍程度のパフォーマンス改善が見られます。  
+またアロケーションもゼロになり、メモリパフォーマンスも向上しています。  
+※Concurrent系Poolでは返却時にアロケーションが発生します。
+
+### ビルド後の計測コード
 ```.cs
-private static void Run()
+private readonly ref struct Measure
 {
-    Big big = default(Big);
-    Profiler.BeginSample("boxing legacy");
-    for (int i = 0; i < 100000; ++i)
+    private readonly string _label;
+    private readonly StringBuilder _builder;
+    private readonly float _time;
+
+    public Measure(string label, StringBuilder builder)
+    {
+        _label = label;
+        _builder = builder;
+        _time = (Time.realtimeSinceStartup * 1000);
+    }
+
+    public void Dispose()
+    {
+        _builder.AppendLine($"{_label}: {(Time.realtimeSinceStartup * 1000) - _time} ms");
+    }
+}
+：
+var log = new StringBuilder();
+Big big = default(Big);
+
+using (new Measure("Boxing_Legacy", log))
+{
+    for (int i = 0; i < 5000; ++i)
     {
         big = new Big()
         {
@@ -25,12 +61,12 @@ private static void Run()
         };
         object o = big;
         Method(o);
-        Method(o);
     }
-    Profiler.EndSample();
+}
 
-    Profiler.BeginSample("boxing pool");
-    for (int i = 0; i < 100000; ++i)
+using (new Measure("Boxing_Pool", log))
+{
+    for (int i = 0; i < 5000; ++i)
     {
         big = new Big()
         {
@@ -38,73 +74,22 @@ private static void Run()
         };
         object o = BoxingPool<Big>.Get(big);
         Method(o);
-        Method(o);
         BoxingPool<Big>.Return(o);
     }
-    Profiler.EndSample();
-}
-
-[MethodImpl(MethodImplOptions.NoInlining)]
-private static bool Method(object o)
-{
-    return o is Big;
-}
-
-[StructLayout(LayoutKind.Explicit)]
-private struct Big
-{
-    [FieldOffset(9992)]
-    public int value;
 }
 ```
 #### 結果
-![image](https://github.com/Katsuya100/BoxingPool/assets/33303650/b00c15fd-7b9e-4e27-88d2-09cf91f929ec)  
-BoxingPoolを使うことで2倍程度のパフォーマンス改善が見られます。  
-またアロケーションもゼロになり、メモリパフォーマンスも向上しています。  
+|  実行処理  |  Mono  |  IL2CPP  |
+| ---- | ---- | ---- | ---- |
+| Boxing_Legacy | 57.6889 ms | 35.61328 ms |
+| Boxing_Pool | 8.582088 ms | 2.003906 ms |
+| Boxing_StructOnlyPool | 8.450382 ms | 1.962891 ms |
+| Boxing_ConcurrentPool | 9.024681 ms | 3.015625 ms |
+| Boxing_ConcurrentStructOnlyPool | 8.934082 ms | 2.90625 ms |
 
-### ビルド後の計測コード
-```.cs
-Big big = default(Big);
-var start = Time.realtimeSinceStartup;
-for (int i = 0; i < 100000; ++i)
-{
-    big = new Big()
-    {
-        value = i,
-    };
-    object o = big;
-    Method(o);
-    Method(o);
-}
-var s1 = Time.realtimeSinceStartup - start;
-
-start = Time.realtimeSinceStartup;
-for (int i = 0; i < 100000; ++i)
-{
-    big = new Big()
-    {
-        value = i,
-    };
-    object o = BoxingPool<Big>.Get(big);
-    Method(o);
-    Method(o);
-    BoxingPool<Big>.Return(o);
-}
-var s2 = Time.realtimeSinceStartup - start;
-```
-#### 結果
-|  環境  |  従来  |  BoxingPool  |
-| ---- | ---- | ---- |
-| Mono | 1.092957 sec | 0.1122379 sec |
-| IL2CPP | 0.8230033 sec | 0.08929324 sec |
-
-10倍程度のパフォーマンス改善が見られました。  
+17倍程度のパフォーマンス改善が見られました。  
 
 ## インストール方法
-### Unsafeのインストール
-1. [NuGet Package Explorer](https://apps.microsoft.com/store/detail/nuget-package-explorer/9WZDNCRDMDM3?hl=ja-jp&gl=jp)などを使い[Unsafe](https://www.nuget.org/packages/System.Runtime.CompilerServices.Unsafe/)のパッケージをダウンロードする。
-2. `System.Runtime.CompilerServices.Unsafe.dll`をPlugins以下に設置する。
-
 ### BoxingPoolのインストール
 1. [Window > Package Manager]を開く。
 2. [+ > Add package from git url...]をクリックする。
@@ -176,6 +161,7 @@ var o = ConcurrentBoxingPool<GameObject>.Get(gameObject);
 Concurrentシリーズは他のBoxingPoolと異なり、固有のPoolを持っています。  
 これにより、マルチスレッド環境でも使用することが可能です。  
 しかし、BoxingPoolに比べて性能面での課題があります。  
+具体的にはReturn時にアロケーションが発生します。  
 後のアップデートで改善していく予定です。  
 
 ### キャッシュの作成
@@ -196,7 +182,7 @@ DISABLE_BOXING_POOL
 ## 高速な理由
 本来Box化オブジェクトを保管しても中にある構造体インスタンスを書き換えることはできません。  
 普通に書き換えようとすれば再Box化が行われるため、別のインスタンスに変わってしまいます。  
-しかし、本ライブラリではobject型でラップされた構造体インスタンスそのものを、`Unsafe`を用いて書き換え、再利用を実現しています。  
+しかし、本ライブラリではIL命令でインスタンスを書き換え、再利用を実現しています。  
 
 また、Poolは`Static Type Caching`を用いて高速に取得できます。  
 初回アクセス時にキャッシュ構築のアロケーションが走りますが、事前にキャッシュを作っておけばこのアロケーションもゼロになります。  

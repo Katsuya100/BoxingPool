@@ -8,17 +8,52 @@ Zero-allocation Boxing is achieved by pooling Boxing objects in advance and reus
 ## System Requirements
 |  Environment  |  Version  |
 | ---- | ---- |
-| Unity | 2020.3.42f1, 2021.3.15f1, 2022.2.0f1 |
-| .Net | 4.x, Standard 2.0, Standard 2.1 |
+| Unity | 2021.3.15f1, 2022.2.0f1 |
+| .Net | 4.x, Standard 2.1 |
 
 ## Performance
 ### Measurement code on the editor
+[Test Code.](packages/Tests/Runtime/BoxingPoolPerformanceTest.cs) 
+
+#### Result
+|  Process  |  Time  |
+| ---- | ---- | ---- |
+| Boxing_Legacy | 34.47214 ms |
+| Boxing_Pool | 17.515775 ms |
+| Boxing_StructOnlyPool | 17.239465 ms |
+| Boxing_ConcurrentPool | 17.70384 ms |
+| Boxing_ConcurrentStructOnlyPool | 15.53006 ms |
+Using BoxingPool, the performance improvement is about 2x.  
+Also, allocation has been reduced to zero, and memory performance has been improved.  
+*Concurrent-type Pools will have allocations when returned.  
+
+### Measurement code on the runtime
 ```.cs
-private static void Run()
+private readonly ref struct Measure
 {
-    Big big = default(Big);
-    Profiler.BeginSample("boxing legacy");
-    for (int i = 0; i < 100000; ++i)
+    private readonly string _label;
+    private readonly StringBuilder _builder;
+    private readonly float _time;
+
+    public Measure(string label, StringBuilder builder)
+    {
+        _label = label;
+        _builder = builder;
+        _time = (Time.realtimeSinceStartup * 1000);
+    }
+
+    public void Dispose()
+    {
+        _builder.AppendLine($"{_label}: {(Time.realtimeSinceStartup * 1000) - _time} ms");
+    }
+}
+：
+var log = new StringBuilder();
+Big big = default(Big);
+
+using (new Measure("Boxing_Legacy", log))
+{
+    for (int i = 0; i < 5000; ++i)
     {
         big = new Big()
         {
@@ -26,12 +61,12 @@ private static void Run()
         };
         object o = big;
         Method(o);
-        Method(o);
     }
-    Profiler.EndSample();
+}
 
-    Profiler.BeginSample("boxing pool");
-    for (int i = 0; i < 100000; ++i)
+using (new Measure("Boxing_Pool", log))
+{
+    for (int i = 0; i < 5000; ++i)
     {
         big = new Big()
         {
@@ -39,73 +74,22 @@ private static void Run()
         };
         object o = BoxingPool<Big>.Get(big);
         Method(o);
-        Method(o);
         BoxingPool<Big>.Return(o);
     }
-    Profiler.EndSample();
-}
-
-[MethodImpl(MethodImplOptions.NoInlining)]
-private static bool Method(object o)
-{
-    return o is Big;
-}
-
-[StructLayout(LayoutKind.Explicit)]
-private struct Big
-{
-    [FieldOffset(9992)]
-    public int value;
 }
 ```
 #### Result
-![image](https://github.com/Katsuya100/BoxingPool/assets/33303650/b00c15fd-7b9e-4e27-88d2-09cf91f929ec)  
-Using BoxingPool, the performance improvement is about 2x.  
-Allocation has also been reduced to zero and memory performance has improved.  
+|  Process  |  Mono  |  IL2CPP  |
+| ---- | ---- | ---- | ---- |
+| Boxing_Legacy | 57.6889 ms | 35.61328 ms |
+| Boxing_Pool | 8.582088 ms | 2.003906 ms |
+| Boxing_StructOnlyPool | 8.450382 ms | 1.962891 ms |
+| Boxing_ConcurrentPool | 9.024681 ms | 3.015625 ms |
+| Boxing_ConcurrentStructOnlyPool | 8.934082 ms | 2.90625 ms |
 
-### Measurement code on the runtime
-```.cs
-Big big = default(Big);
-var start = Time.realtimeSinceStartup;
-for (int i = 0; i < 100000; ++i)
-{
-    big = new Big()
-    {
-        value = i,
-    };
-    object o = big;
-    Method(o);
-    Method(o);
-}
-var s1 = Time.realtimeSinceStartup - start;
-
-start = Time.realtimeSinceStartup;
-for (int i = 0; i < 100000; ++i)
-{
-    big = new Big()
-    {
-        value = i,
-    };
-    object o = BoxingPool<Big>.Get(big);
-    Method(o);
-    Method(o);
-    BoxingPool<Big>.Return(o);
-}
-var s2 = Time.realtimeSinceStartup - start;
-```
-#### Result
-|  Environment  |  Legacy  |  BoxingPool  |
-| ---- | ---- | ---- |
-| Mono | 1.092957 sec | 0.1122379 sec |
-| IL2CPP | 0.8230033 sec | 0.08929324 sec |
-
-We saw a performance improvement of about 10 times.  
+We saw a performance improvement of about 17x.  
 
 ## How to install
-### Installing Unsafe
-1. download the [Unsafe](https://www.nuget.org/packages/System.Runtime.CompilerServices.Unsafe/) package using [NuGet Package Explurer](https://apps.microsoft.com/store/detail/nuget-package-explorer/9WZDNCRDMDM3?hl=ja-jp&gl=jp) or similar.
-2. install `System.Runtime.CompilerServices.Unsafe.dll` under Plugins.
-
 ### Installing BoxingPool
 1. Open [Window > Package Manager].
 2. click [+ > Add package from git url...].
@@ -174,7 +158,8 @@ var o = ConcurrentBoxingPool<GameObject>.Get(gameObject);
 Unlike other BoxingPools, the Concurrent series has a unique Pool.  
 This allows it to be used in multi-threaded environments.  
 However, there are some performance issues compared to BoxingPool.  
-We plan to improve this in later updates.  
+Specifically, allocation occurs at Return.  
+Plan to improve this in later updates.  
 
 ### Cache Creation
 You can create a cache in advance by calling the `MakeCache` function.  
@@ -194,13 +179,11 @@ After disabling, the API will still be valid, but normal Boxing will occur witho
 ## Reasons for high performance
 By nature, storing a Boxed object does not allow you to rewrite the structure instance inside.  
 If you try to rewrite it normally, it will be reboxed and changed to another instance.  
-However, this library uses `Unsafe` to rewrite the structure instance itself, which is wrapped in object type, to achieve reuse.  
+However, this library rewrites instances with the IL instruction to achieve reuse.  
 
-Pools can also be retrieved quickly using `Static Type Caching`.  
-Although allocation of cache construction is performed at the first access, this allocation can be eliminated if the cache is created in advance.  
+Also, Pool can be retrieved at high speed using `Static Type Caching`.  
+Although allocation of cache construction is performed at the first access, this allocation can be reduced to zero if the cache is created in advance.  
 
 The `MethodImpl` attribute is set to `AggressiveInline`, so you can also expect optimization by inline expansion at build time.
 
 The above techniques provide overwhelming performance compared to conventional Boxing.  
-
-Translated with www.DeepL.com/Translator (free version)

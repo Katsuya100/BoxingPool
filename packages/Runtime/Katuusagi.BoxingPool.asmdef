@@ -1,6 +1,6 @@
 {
-    "name": "Katuusagi.BoxingPool.Runtime",
-    "rootNamespace": "",
+    "name": "Katuusagi.BoxingPool",
+    "rootNamespace": "Katuusagi.Pool",
     "references": [],
     "includePlatforms": [],
     "excludePlatforms": [],

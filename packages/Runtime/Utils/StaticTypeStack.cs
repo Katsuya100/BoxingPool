@@ -30,18 +30,7 @@ namespace Katuusagi.Pool.Utils
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool TryPop(out object result)
         {
-#if NET_STANDARD_2_1 || NET_UNITY_4_8
             return _stack.TryPop(out result);
-#elif NET_STANDARD_2_0 || NET_4_6
-            if (_stack.Count > 0)
-            {
-                result = _stack.Pop();
-                return true;
-            }
-
-            result = default;
-            return false;
-#endif
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

@@ -10,11 +10,12 @@ namespace Katuusagi.Pool.Utils
         static StaticTypeConcurrentStack()
         {
             var t = typeof(T);
-            if (!t.IsClass && !t.IsInterface)
+            if (t.IsClass || t.IsInterface)
             {
                 return;
             }
 
+            _stack = new ConcurrentStack<object>();
             MakeCache(32);
         }
 

@@ -10,11 +10,13 @@ namespace Katuusagi.Pool
         {
             private readonly object _obj;
 
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public GetHandler(object obj)
             {
                 _obj = obj;
             }
 
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void Dispose()
             {
                 Return(_obj);
@@ -23,10 +25,6 @@ namespace Katuusagi.Pool
 
         static ConcurrentStructOnlyBoxingPool()
         {
-#if !DISABLE_BOXING_POOL
-            object dummy = default(T);
-            Unsafe.As<object, Box>(ref dummy);
-#endif
         }
 
         public static void MakeCache(int minCount)
@@ -54,7 +52,7 @@ namespace Katuusagi.Pool
                 return value;
             }
 
-            Unsafe.As<object, Box>(ref result).Value = value;
+            BoxingUtils.Unbox<T>(result) = value;
             return result;
 #endif
         }
@@ -84,14 +82,9 @@ namespace Katuusagi.Pool
 #if DISABLE_BOXING_POOL
             result = (T)value;
 #else
-            result = Unsafe.As<object, Box>(ref value).Value;
+            result = BoxingUtils.Unbox<T>(value);
 #endif
             return true;
-        }
-
-        private class Box
-        {
-            public T Value;
         }
     }
 
