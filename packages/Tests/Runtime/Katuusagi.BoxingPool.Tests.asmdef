@@ -1,0 +1,19 @@
+{
+    "name": "Katuusagi.BoxingPool.Tests",
+    "rootNamespace": "",
+    "references": [
+        "GUID:8593f1840fca4844c9db673d969a69db",
+        "GUID:c0dd0d10738d4ad4a9de57c559d0ca1b"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
