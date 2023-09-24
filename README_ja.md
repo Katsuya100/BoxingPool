@@ -16,7 +16,7 @@ Box化オブジェクトを事前にPoolしておき、必要なときに再利�
 
 #### 結果
 |  実行処理  |  処理時間  |
-| ---- | ---- | ---- |
+| ---- | ---- |
 | Boxing_Legacy | 34.47214 ms |
 | Boxing_Pool | 17.515775 ms |
 | Boxing_StructOnlyPool | 17.239465 ms |
@@ -80,7 +80,7 @@ using (new Measure("Boxing_Pool", log))
 ```
 #### 結果
 |  実行処理  |  Mono  |  IL2CPP  |
-| ---- | ---- | ---- | ---- |
+| ---- | ---- | ---- |
 | Boxing_Legacy | 57.6889 ms | 35.61328 ms |
 | Boxing_Pool | 8.582088 ms | 2.003906 ms |
 | Boxing_StructOnlyPool | 8.450382 ms | 1.962891 ms |
