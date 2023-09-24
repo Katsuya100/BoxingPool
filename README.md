@@ -17,12 +17,13 @@ Zero-allocation Boxing is achieved by pooling Boxing objects in advance and reus
 
 #### Result
 |  Process  |  Time  |
-| ---- | ---- | ---- |
+| ---- | ---- |
 | Boxing_Legacy | 34.47214 ms |
 | Boxing_Pool | 17.515775 ms |
 | Boxing_StructOnlyPool | 17.239465 ms |
 | Boxing_ConcurrentPool | 17.70384 ms |
 | Boxing_ConcurrentStructOnlyPool | 15.53006 ms |
+
 Using BoxingPool, the performance improvement is about 2x.  
 Also, allocation has been reduced to zero, and memory performance has been improved.  
 *Concurrent-type Pools will have allocations when returned.  
@@ -80,7 +81,7 @@ using (new Measure("Boxing_Pool", log))
 ```
 #### Result
 |  Process  |  Mono  |  IL2CPP  |
-| ---- | ---- | ---- | ---- |
+| ---- | ---- | ---- |
 | Boxing_Legacy | 57.6889 ms | 35.61328 ms |
 | Boxing_Pool | 8.582088 ms | 2.003906 ms |
 | Boxing_StructOnlyPool | 8.450382 ms | 1.962891 ms |
