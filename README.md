@@ -152,7 +152,7 @@ object o = BoxingPool<int, IComparable>.Get(100);
 ```
 
 ### If you want to support multi-threading
-If you want to use it in a multi-threaded environment Use `ConcurrentBoxingPool` or `CurrentStructOnlyBoxingPool`.  
+If you want to use it in a multi-threaded environment Use `ConcurrentBoxingPool` or `ConcurrentStructOnlyBoxingPool`.  
 ```.cs
 var o = ConcurrentBoxingPool<GameObject>.Get(gameObject);
 ```
@@ -161,6 +161,15 @@ This allows it to be used in multi-threaded environments.
 However, there are some performance issues compared to BoxingPool.  
 Specifically, allocation occurs at Return.  
 Plan to improve this in later updates.  
+
+#### ThreadStatic pools
+Multithreading can be supported without performance loss by using `ThreadStaticBoxingPool` or `ThreadStaticStructOnlyBoxingPool`.  
+```.cs
+var o = ThreadStaticBoxingPool<GameObject>.Get(gameObject);
+```
+Since a different pool is used for each Thread, memory consumption may be higher than in the Concurrent series.
+Also, be careful not to return the object you get in a different thread.  
+The return will be completed normally, but it will be returned to a different pool from the one in which it was acquired.  
 
 ### Cache Creation
 You can create a cache in advance by calling the `MakeCache` function.  

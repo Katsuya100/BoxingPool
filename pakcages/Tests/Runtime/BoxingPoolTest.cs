@@ -87,6 +87,45 @@ namespace Katuusagi.Pool.Tests
         }
 
         [Test]
+        public void ThreadStaticBoxing()
+        {
+            using (ThreadStaticBoxingPool<int>.Get(10, out var v))
+            {
+                Assert.AreEqual(v, 10);
+            }
+
+            using (ThreadStaticBoxingPool<int, IComparable>.Get(10, out var v))
+            {
+                Assert.AreEqual(v, 10);
+            }
+
+            var type = typeof(BoxingPoolTest);
+            using (ThreadStaticBoxingPool<Type>.Get(type, out var v))
+            {
+                Assert.AreEqual(v, type);
+            }
+
+            using (ThreadStaticBoxingPool<Type, IReflect>.Get(type, out var v))
+            {
+                Assert.AreEqual(v, type);
+            }
+        }
+
+        [Test]
+        public void ThreadStaticStructOnlyBoxing()
+        {
+            using (ThreadStaticStructOnlyBoxingPool<int>.Get(10, out var v))
+            {
+                Assert.AreEqual(v, 10);
+            }
+
+            using (ThreadStaticStructOnlyBoxingPool<int, IComparable>.Get(10, out var v))
+            {
+                Assert.AreEqual(v, 10);
+            }
+        }
+
+        [Test]
         public void Parallel_()
         {
             var wait = new SpinWait();
@@ -102,10 +141,36 @@ namespace Katuusagi.Pool.Tests
             {
                 wait.SpinOnce();
             }
+            
+            result = Parallel.For(0, 10000, (i) =>
+            {
+                using (ThreadStaticBoxingPool<int>.Get(i, out var v))
+                {
+                    Assert.AreEqual(v, i);
+                }
+            });
+
+            while (!result.IsCompleted)
+            {
+                wait.SpinOnce();
+            }
 
             result = Parallel.For(0, 10000, (i) =>
             {
                 using (ConcurrentStructOnlyBoxingPool<int>.Get(i, out var v))
+                {
+                    Assert.AreEqual(v, i);
+                }
+            });
+
+            while (!result.IsCompleted)
+            {
+                wait.SpinOnce();
+            }
+
+            result = Parallel.For(0, 10000, (i) =>
+            {
+                using (ThreadStaticStructOnlyBoxingPool<int>.Get(i, out var v))
                 {
                     Assert.AreEqual(v, i);
                 }

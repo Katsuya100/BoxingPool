@@ -2,7 +2,7 @@
     "name": "com.katuusagi.boxingpool",
     "displayName": "BoxingPool",
     "description": "A system for pooling boxed objects.\nUnsafe is used to write directly to the boxed object to enable reuse.",
-    "version": "1.1.0",
+    "version": "1.2.0",
     "unity": "2021.3",
     "dependencies": {
         "com.unity.test-framework.performance": "3.0.2"
@@ -18,5 +18,5 @@
     },
     "documentationUrl": "https://github.com/Katsuya100/BoxingPool",
     "changelogUrl": "https://github.com/Katsuya100/BoxingPool/releases",
-    "licensesUrl": "https://github.com/Katsuya100/BoxingPool/blob/v1.1.0/LICENSE"
+    "licensesUrl": "https://github.com/Katsuya100/BoxingPool/blob/v1.2.0/LICENSE"
 }

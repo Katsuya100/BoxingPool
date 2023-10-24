@@ -154,7 +154,7 @@ IComparable o = BoxingPool<int, IComparable>.Get(100);
 
 ### マルチスレッドに対応したい場合
 マルチスレッド環境で使用したい場合は  
-`ConcurrentBoxingPool`や`CuncurrentStructOnlyBoxingPool`を使用してください。  
+`ConcurrentBoxingPool`や`ConcurrentStructOnlyBoxingPool`を使用してください。  
 ```.cs
 var o = ConcurrentBoxingPool<GameObject>.Get(gameObject);
 ```
@@ -163,6 +163,16 @@ Concurrentシリーズは他のBoxingPoolと異なり、固有のPoolを持っ�
 しかし、BoxingPoolに比べて性能面での課題があります。  
 具体的にはReturn時にアロケーションが発生します。  
 後のアップデートで改善していく予定です。  
+
+#### ThreadStaticなプール
+`ThreadStaticBoxingPool`や`ThreadStaticStructOnlyBoxingPool`を使用することで  
+パフォーマンスを落とさずにマルチスレッド対応が可能です。  
+```.cs
+var o = ThreadStaticBoxingPool<GameObject>.Get(gameObject);
+```
+Thread毎に異なるプールを用いるため、Concurrentシリーズに比べてメモリ消費量が多くなる可能性があります。
+また、Getしたobjectを異なるスレッドで返却しないように注意してください。  
+返却は正常に完了しますが取得したプールと異なるプールに返却されてしまいます。  
 
 ### キャッシュの作成
 `MakeCache`関数を呼び出すことで事前にキャッシュを作成することができます。  
