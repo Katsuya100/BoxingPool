@@ -18,11 +18,13 @@ Zero-allocation Boxing is achieved by pooling Boxing objects in advance and reus
 #### Result
 |  Process  |  Time  |
 | ---- | ---- |
-| Boxing_Legacy | 34.47214 ms |
-| Boxing_Pool | 17.515775 ms |
-| Boxing_StructOnlyPool | 17.239465 ms |
-| Boxing_ConcurrentPool | 17.70384 ms |
-| Boxing_ConcurrentStructOnlyPool | 15.53006 ms |
+| Boxing_Legacy | 31.004235 ms |
+| Boxing_Pool | 15.1678 ms |
+| Boxing_StructOnlyPool | 15.358 ms |
+| Boxing_ConcurrentPool | 15.4086 ms |
+| Boxing_ConcurrentStructOnlyPool | 15.39855 ms |
+| Boxing_ThreadStaticPool | 15.19975 ms |
+| Boxing_ThreadStaticStructOnlyPool | 15.3461 ms |
 
 Using BoxingPool, the performance improvement is about 2x.  
 Also, allocation has been reduced to zero, and memory performance has been improved.  
@@ -82,11 +84,13 @@ using (new Measure("Boxing_Pool", log))
 #### Result
 |  Process  |  Mono  |  IL2CPP  |
 | ---- | ---- | ---- |
-| Boxing_Legacy | 57.6889 ms | 35.61328 ms |
-| Boxing_Pool | 8.582088 ms | 2.003906 ms |
-| Boxing_StructOnlyPool | 8.450382 ms | 1.962891 ms |
-| Boxing_ConcurrentPool | 9.024681 ms | 3.015625 ms |
-| Boxing_ConcurrentStructOnlyPool | 8.934082 ms | 2.90625 ms |
+| Boxing_Legacy | 52.86654 ms | 41.43652 ms |
+| Boxing_Pool | 9.189175 ms | 2.425781 ms |
+| Boxing_StructOnlyPool | 9.142063 ms | 2.452148 ms |
+| Boxing_ConcurrentPool | 9.591019 ms | 3.321289 ms |
+| Boxing_ConcurrentStructOnlyPool | 9.610249 ms | 3.245117 ms |
+| Boxing_ThreadStaticPool | 9.15694 ms | 2.49707 ms |
+| Boxing_ThreadStaticStructOnlyPool | 9.292259 ms | 2.520508 ms |
 
 We saw a performance improvement of about 17x.  
 

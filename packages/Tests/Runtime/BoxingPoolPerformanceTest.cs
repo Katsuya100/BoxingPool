@@ -147,6 +147,58 @@ namespace Katuusagi.Pool.Tests
             .Run();
         }
 
+        [Test]
+        [Performance]
+        public void Boxing_ThreadStaticPool()
+        {
+            Big big = default(Big);
+
+            int i = 0;
+            Measure.Method(() =>
+            {
+                Profiler.BeginSample("concurrent pool");
+                big = new Big()
+                {
+                    value = i,
+                };
+                object o = ThreadStaticBoxingPool<Big>.Get(big);
+                Method(o);
+                ThreadStaticBoxingPool<Big>.Return(o);
+                ++i;
+                Profiler.EndSample();
+            })
+            .WarmupCount(1)
+            .IterationsPerMeasurement(5000)
+            .MeasurementCount(20)
+            .Run();
+        }
+
+        [Test]
+        [Performance]
+        public void Boxing_ThreadStaticStructOnlyPool()
+        {
+            Big big = default(Big);
+
+            int i = 0;
+            Measure.Method(() =>
+            {
+                Profiler.BeginSample("concurrent structonly pool");
+                big = new Big()
+                {
+                    value = i,
+                };
+                object o = ThreadStaticStructOnlyBoxingPool<Big>.Get(big);
+                Method(o);
+                ThreadStaticStructOnlyBoxingPool<Big>.Return(o);
+                ++i;
+                Profiler.EndSample();
+            })
+            .WarmupCount(1)
+            .IterationsPerMeasurement(5000)
+            .MeasurementCount(20)
+            .Run();
+        }
+
         // allocÇµÇ»Ç≠Çƒç≈ìKâªÇ≥ÇÍÇ»Ç≥ÇªÇ§Ç»ä÷êî
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static bool Method(object o)

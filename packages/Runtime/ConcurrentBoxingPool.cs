@@ -5,6 +5,23 @@ namespace Katuusagi.Pool
 {
     public static class ConcurrentBoxingPool<T>
     {
+        public readonly struct ReadOnlyHandler
+        {
+            private readonly object _obj;
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public ReadOnlyHandler(object obj)
+            {
+                _obj = obj;
+            }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void Dispose()
+            {
+                Return(_obj);
+            }
+        }
+
         public readonly ref struct GetHandler
         {
             private readonly object _obj;
@@ -19,6 +36,11 @@ namespace Katuusagi.Pool
             public void Dispose()
             {
                 Return(_obj);
+            }
+
+            public static implicit operator ReadOnlyHandler(GetHandler obj)
+            {
+                return new ReadOnlyHandler(obj._obj);
             }
         }
 
